@@ -20,4 +20,5 @@ public class RiskPrediction {
     public String getRiskLevel() { return riskLevel; }
     public List<String> getContributingFactors() { return contributingFactors; }
     public List<String> getRecommendedInterventions() { return recommendedInterventions; }
+
 }
