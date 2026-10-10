@@ -2,6 +2,7 @@ package com.coder.drop_risk.service;
 
 import com.coder.drop_risk.dto.RiskPrediction;
 import com.coder.drop_risk.model.Student;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.List;
 @Service
 public class DropoutAiService {
 
-    public RiskPrediction predictDropoutRisk(Student student) {
+    public RiskPrediction predictDropoutRisk(@NonNull Student student) {
         double score = 0.0;
         List<String> factors = new ArrayList<>();
         List<String> actions = new ArrayList<>();
