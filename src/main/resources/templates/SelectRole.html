@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EduGuard | Select Your Role</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 1rem;
+        }
+
+        .user-email {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .role-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .role-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .role-option {
+            display: none;
+        }
+
+        .role-option input[type="radio"] {
+            display: none;
+        }
+
+        .role-option label {
+            display: block;
+            padding: 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .role-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background: #f0f4ff;
+            font-weight: 600;
+        }
+
+        .role-option:nth-child(1),
+        .role-option:nth-child(2) {
+            display: block;
+        }
+
+        .role-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1rem;
+            color: #374151;
+        }
+
+        .role-emoji {
+            font-size: 1.5rem;
+        }
+
+        .role-description {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 8px;
+            font-weight: normal;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: #5568d3;
+        }
+
+        .submit-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        form {
+            display: none;
+        }
+
+        form.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="logo">🎓 EduGuard</div>
+        <p class="subtitle">Student Success Platform</p>
+
+        <div class="user-info">
+            <div class="user-name" th:text="${name}">User Name</div>
+            <div class="user-email" th:text="${email}">email@gmail.com</div>
+        </div>
+
+        <form method="post">
+            <div class="role-title">Select Your Role</div>
+
+            <div class="role-options">
+                <div class="role-option">
+                    <input type="radio" id="teacher" name="role" value="TEACHER" required>
+                    <label for="teacher">
+                        <span class="role-label">
+                            <span class="role-emoji">👨‍🏫</span>
+                            <span>I'm a Teacher</span>
+                        </span>
+                        <span class="role-description">Manage students and provide support</span>
+                    </label>
+                </div>
+
+                <div class="role-option">
+                    <input type="radio" id="student" name="role" value="STUDENT" required>
+                    <label for="student">
+                        <span class="role-label">
+                            <span class="role-emoji">👨‍🎓</span>
+                            <span>I'm a Student</span>
+                        </span>
+                        <span class="role-description">View your profile and progress</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>Continue</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const radioButtons = document.querySelectorAll('input[type="radio"]');
+    const submitBtn = document.getElementById('submitBtn');
+
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', () => {
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+</body>
+</html>

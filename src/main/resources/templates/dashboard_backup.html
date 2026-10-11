@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EduGuard | Student Risk Dashboard</title>
+    <link rel="stylesheet" th:href="@{/Style.css}">
+    <!-- Chart.js for Visual Explainable AI Dashboard -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #1f2937;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+        }
+        .close-btn:hover {
+            color: #1f2937;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .form-actions button {
+            flex: 1;
+        }
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+        }
+        .success-message {
+            background: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            display: none;
+        }
+        .success-message.show {
+            display: block;
+        }
+        .action-cell {
+            text-align: center;
+        }
+        .logout-btn {
+            background: #6b7280;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .logout-btn:hover {
+            background: #4b5563;
+        }
+        /* Visual Explainable AI - Risk Breakdown Chart Styles */
+        .risk-breakdown {
+            width: 100%;
+            max-width: 120px;
+            margin-top: 4px;
+        }
+        .risk-bar-container {
+            display: flex;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+        .risk-bar-segment {
+            height: 100%;
+        }
+        .risk-legend {
+            font-size: 10px;
+            margin-top: 4px;
+            color: #6b7280;
+        }
+        /* Case Management Modal Styles */
+        .modal select {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .btn-case {
+            background: #8b5cf6;
+            color: white;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .btn-case:hover {
+            background: #7c3aed;
+        }
+        .brief-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            white-space: pre-line;
+            line-height: 1.5;
+        }
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+        }
+        .case-status {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #dbeafe;
+            color: #1e40af;
+            margin-left: 0.5rem;
+        }
+        .case-status.closed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-actions">
+        <div>
+            <p class="eyebrow">EDUGUARD</p>
+            <h1>Student risk dashboard</h1>
+            <p class="subtitle">Early support for students who may need attention.</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <button class="btn btn-primary" onclick="openAddModal()">+ Add Student</button>
+            <form action="/api/auth/logout" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">Sign Out</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<section class="metrics">
+    <div class="card"><span>Students</span><strong th:text="${#lists.size(students)}">0</strong></div>
+    <div class="card high"><span>High risk</span><strong th:text="${#lists.size(students.?[tier == 'High'])}">0</strong></div>
+    <div class="card medium"><span>Medium risk</span><strong th:text="${#lists.size(students.?[tier == 'Medium'])}">0</strong></div>
+    <div class="card low"><span>Low risk</span><strong th:text="${#lists.size(students.?[tier == 'Low'])}">0</strong></div>
+</section>
+
+<div id="notification" class="success-message"></div>
+
+<main class="table-wrap">
+    <table>
+        <thead><tr><th>Student</th><th>Class</th><th>Attendance</th><th>Marks</th><th>Risk Score</th><th>Key factors</th><th>Suggested support</th><th>Action</th></tr></thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(students)}"><td colspan="8" class="empty">No student records found.</td></tr>
+        <tr th:each="student : ${students}" th:attr="data-student-id=${student.id}">
+            <td><strong th:text="${student.studentCode}">S-101</strong><small th:text="${student.term}">2026-T1</small></td>
+            <td th:text="${student.className}">Class 9</td>
+            <td th:text="${student.attendance + '%'}">85%</td>
+            <td th:text="${student.averageMarks}">72</td>
+            <td>
+                <span class="badge" th:classappend="${student.tier == 'High' ? ' badge-high' : (student.tier == 'Medium' ? ' badge-medium' : ' badge-low')}" th:text="${student.tier}">Low</span>
+                <small th:text="${student.riskPercent + '% score'}">10% score</small>
+                <!-- Visual Explainable AI - Risk Breakdown Bar -->
+                <div class="risk-breakdown">
+                    <div class="risk-bar-container">
+                        <div class="risk-bar-segment" th:style="'width:' + ${(student.attendance < 75 ? (student.attendance < 60 ? 40 : 25) : 0)} + '%; background: #ef4444;'" title="Attendance Risk"></div>
+                        <div class="risk-bar-segment" th:style="'width:' + ${(student.averageMarks < 65 ? (student.averageMarks < 50 ? 30 : 15) : 0)} + '%; background: #f59e0b;'" title="Academic Risk"></div>
+                        <div class="risk-bar-segment" th:style="'width:' + ${((student.engagementScore != null and student.engagementScore < 40) ? 20 : 0)} + '%; background: #8b5cf6;'" title="Engagement Risk"></div>
+                    </div>
+                    <div class="risk-legend">
+                        <span style="color: #ef4444;">■</span> Attendance
+                        <span style="color: #f59e0b;">■</span> Marks
+                        <span style="color: #8b5cf6;">■</span> Engagement
+                    </div>
+                </div>
+            </td>
+            <td><ul><li th:each="factor : ${student.factors}" th:text="${factor}">Low attendance</li></ul></td>
+            <td>
+                <ul><li th:each="recommendation : ${student.recommendations}" th:text="${recommendation}">Continue monitoring</li></ul>
+                <!-- AI Intervention Brief (loaded on demand) -->
+                <div class="brief-box" th:attr="id='brief-' + ${student.id}" style="display: none;"></div>
+            </td>
+            <td class="action-cell">
+                <button class="btn btn-case" th:attr="data-id=${student.id}, data-code=${student.studentId}" onclick="openCaseModal(this.getAttribute('data-id'), this.getAttribute('data-code'))">Initiate Case</button>
+                <button class="btn btn-danger" th:attr="data-id=${student.id}" onclick="removeStudent(this.getAttribute('data-id'))">Remove</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+
+<!-- Add Student Modal -->
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add New Student</h2>
+            <button class="close-btn" onclick="closeAddModal()">&times;</button>
+        </div>
+
+        <div id="modalError" class="error-message"></div>
+
+        <form id="addStudentForm">
+            <div class="form-group">
+                <label for="studentCode">Student Code *</label>
+                <input type="text" id="studentCode" name="studentCode" required>
+            </div>
+
+            <div class="form-group">
+                <label for="className">Class Name *</label>
+                <input type="text" id="className" name="className" required>
+            </div>
+
+            <div class="form-group">
+                <label for="term">Term *</label>
+                <input type="text" id="term" name="term" placeholder="e.g., Fall 2026" required>
+            </div>
+
+            <div class="form-group">
+                <label for="attendance">Attendance (%) *</label>
+                <input type="number" id="attendance" name="attendance" min="0" max="100" step="0.1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="averageMarks">Average Marks *</label>
+                <input type="number" id="averageMarks" name="averageMarks" min="0" max="100" step="0.1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="feeStatus">Fee Status *</label>
+                <select id="feeStatus" name="feeStatus" required>
+                    <option value="">Select status</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="engagementScore">Engagement Score (0-100) *</label>
+                <input type="number" id="engagementScore" name="engagementScore" min="0" max="100" step="0.1" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">Add Student</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Case Management Modal -->
+<div id="caseModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Initiate Intervention Case</h2>
+            <button class="close-btn" onclick="closeCaseModal()">&times;</button>
+        </div>
+
+        <div id="caseModalError" class="error-message"></div>
+
+        <p style="margin-bottom: 1rem; color: #6b7280;">
+            Student: <strong id="caseStudentCode" style="color: #1f2937;"></strong>
+        </p>
+
+        <form id="initiateCaseForm">
+            <div class="form-group">
+                <label for="supportTrack">Support Track *</label>
+                <select id="supportTrack" name="supportTrack" required>
+                    <option value="">Select support track</option>
+                    <option value="Academic Check-in">Academic Check-in</option>
+                    <option value="Attendance Support">Attendance Support</option>
+                    <option value="Counseling Referral">Counseling Referral</option>
+                    <option value="Financial Aid Review">Financial Aid Review</option>
+                    <option value="Mentorship Program">Mentorship Program</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="caseNotes">Notes (Optional)</label>
+                <textarea id="caseNotes" name="notes" rows="3" style="width: 100%; padding: 0.625rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; font-family: inherit;" placeholder="Add any relevant context..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="button" class="btn btn-secondary" onclick="generateAIBrief()" id="generateBriefBtn" style="width: 100%;">
+                    Generate AI Intervention Brief
+                </button>
+                <div id="aiBriefPreview" class="brief-box" style="display: none; margin-top: 0.5rem;"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCaseModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="submitCaseBtn">Initiate Case</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddModal() {
+        document.getElementById('addModal').classList.add('show');
+        document.getElementById('addStudentForm').reset();
+        document.getElementById('modalError').classList.remove('show');
+    }
+
+    function closeAddModal() {
+        document.getElementById('addModal').classList.remove('show');
+    }
+
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = {
+            studentCode: document.getElementById('studentCode').value,
+            className: document.getElementById('className').value,
+            term: document.getElementById('term').value,
+            attendance: parseFloat(document.getElementById('attendance').value),
+            averageMarks: parseFloat(document.getElementById('averageMarks').value),
+            feeStatus: document.getElementById('feeStatus').value,
+            engagementScore: parseFloat(document.getElementById('engagementScore').value)
+        };
+
+        const submitBtn = document.getElementById('submitBtn');
+        const modalError = document.getElementById('modalError');
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Adding...';
+        modalError.classList.remove('show');
+
+        fetch('/api/students', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                modalError.textContent = data.error;
+                modalError.classList.add('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Student';
+            } else {
+                closeAddModal();
+                showNotification('Student added successfully');
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        })
+        .catch(() => {
+            modalError.textContent = 'Something went wrong. Please try again.';
+            modalError.classList.add('show');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Add Student';
+        });
+    });
+
+    function removeStudent(id) {
+        if (!confirm('Are you sure you want to remove this student?')) {
+            return;
+        }
+
+        fetch('/api/students/' + id, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                showNotification('Student removed successfully');
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        })
+        .catch(() => {
+            alert('Something went wrong. Please try again.');
+        });
+    }
+
+    // Case Management Functions
+    let selectedStudentId = null;
+    let selectedStudentCode = null;
+
+    function openCaseModal(studentId, studentCode) {
+        selectedStudentId = studentId;
+        selectedStudentCode = studentCode;
+        document.getElementById('caseStudentCode').textContent = studentCode;
+        document.getElementById('initiateCaseForm').reset();
+        document.getElementById('caseModalError').classList.remove('show');
+        document.getElementById('aiBriefPreview').style.display = 'none';
+        document.getElementById('caseModal').classList.add('show');
+    }
+
+    function closeCaseModal() {
+        document.getElementById('caseModal').classList.remove('show');
+        selectedStudentId = null;
+        selectedStudentCode = null;
+    }
+
+    function generateAIBrief() {
+        if (!selectedStudentId) return;
+
+        const button = document.getElementById('generateBriefBtn');
+        const preview = document.getElementById('aiBriefPreview');
+        button.disabled = true;
+        button.textContent = 'Generating...';
+        preview.style.display = 'block';
+        preview.innerHTML = '<span class="loading">Creating a personalized support plan...</span>';
+
+        fetch('/api/interventions/' + selectedStudentId + '/generate', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                preview.textContent = data.error;
+            } else {
+                preview.textContent = data.interventionBrief;
+                document.getElementById('caseNotes').value = data.interventionBrief;
+            }
+            button.disabled = false;
+            button.textContent = 'Generate AI Intervention Brief';
+        })
+        .catch(() => {
+            preview.textContent = 'Unable to generate brief right now. You can still create the case with your own notes.';
+            button.disabled = false;
+            button.textContent = 'Generate AI Intervention Brief';
+        });
+    }
+
+    document.getElementById('initiateCaseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const errorBox = document.getElementById('caseModalError');
+        const submitButton = document.getElementById('submitCaseBtn');
+        const supportTrack = document.getElementById('supportTrack').value;
+        const notes = document.getElementById('caseNotes').value;
+
+        if (!supportTrack || !selectedStudentId) {
+            errorBox.textContent = 'Please select a support track.';
+            errorBox.classList.add('show');
+            return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+        errorBox.classList.remove('show');
+
+        fetch('/api/cases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                studentId: parseInt(selectedStudentId),
+                supportTrack: supportTrack,
+                notes: notes
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                errorBox.textContent = data.error;
+                errorBox.classList.add('show');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Initiate Case';
+            } else {
+                closeCaseModal();
+                showNotification('Case initiated for ' + data.studentCode);
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        })
+        .catch(() => {
+            errorBox.textContent = 'Something went wrong. Please try again.';
+            errorBox.classList.add('show');
+            submitButton.disabled = false;
+            submitButton.textContent = 'Initiate Case';
+        });
+    });
+
+    // Close modals when clicking outside
+    document.getElementById('addModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAddModal();
+        }
+    });
+
+    document.getElementById('caseModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCaseModal();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EduGuard | My Profile</title>
+    <link rel="stylesheet" th:href="@{/Style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .student-profile-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .profile-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .profile-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #1f2937;
+        }
+        .logout-btn {
+            background: #6b7280;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logout-btn:hover {
+            background: #4b5563;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .info-item {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .info-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        .risk-badge.high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .risk-badge.medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .risk-badge.low {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .risk-chart-container {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .risk-chart-container h3 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+        .remarks-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .remarks-section h2 {
+            margin-top: 0;
+            color: #1f2937;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 1rem;
+        }
+        .remark-item {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+        .remark-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .remark-from {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .remark-date {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .remark-content {
+            color: #374151;
+            line-height: 1.6;
+            margin-top: 0.5rem;
+        }
+        .no-remarks {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-actions">
+        <div>
+            <p class="eyebrow">EDUGUARD</p>
+            <h1>Student Portal</h1>
+            <p class="subtitle">View your academic profile and teacher feedback.</p>
+        </div>
+        <form action="/api/auth/logout" method="post" style="margin: 0;">
+            <button type="submit" class="logout-btn">Sign Out</button>
+        </form>
+    </div>
+</header>
+
+<div class="student-profile-container">
+    <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <div>
+                <h1 th:text="${currentUser}">Student Name</h1>
+                <p style="color: #6b7280; margin: 0.5rem 0 0 0;">Student ID: <strong th:text="${student.studentCode}">S-101</strong></p>
+            </div>
+            <div th:if="${risk}">
+                <span class="risk-badge" th:classappend="${'risk-badge-' + risk.tier().toLowerCase()}" th:text="${risk.tier() + ' Risk'}">Low Risk</span>
+                <p style="text-align: right; color: #6b7280; margin-top: 0.5rem; font-size: 0.875rem;" th:text="${risk.riskPercent() + '% risk score'}">0% risk score</p>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Attendance</div>
+                <div class="info-value" th:text="${student.attendance + '%'}">85%</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Average Marks</div>
+                <div class="info-value" th:text="${student.averageMarks}">78</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Class</div>
+                <div class="info-value" th:text="${student.className}">Class 9</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Fee Status</div>
+                <div class="info-value" th:text="${student.feeStatus}">CLEAR</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-card" th:if="${risk}">
+        <h2 style="margin-top: 0; color: #1f2937;">Your Risk Assessment</h2>
+        <p style="color: #6b7280; margin-bottom: 1.5rem;">This shows which factors contribute to your risk score. Work with your teacher to improve these areas.</p>
+        
+        <div class="risk-chart-container">
+            <h3>Risk Factors</h3>
+            <ul style="color: #374151; line-height: 1.8;">
+                <li th:each="factor : ${risk.factors()}" th:text="${factor}">Risk factor</li>
+            </ul>
+        </div>
+
+        <div class="risk-chart-container">
+            <h3>Recommended Support</h3>
+            <ul style="color: #374151; line-height: 1.8;">
+                <li th:each="rec : ${risk.recommendations()}" th:text="${rec}">Recommendation</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="remarks-section">
+        <h2>Teacher Remarks</h2>
+        <p style="color: #6b7280; margin-bottom: 1.5rem;">Personalized feedback and guidance from your teachers.</p>
+
+        <div th:if="${remarks != null and remarks.size() > 0}">
+            <div th:each="remark : ${remarks}" class="remark-item">
+                <div class="remark-header">
+                    <span class="remark-from">Your Teacher</span>
+                    <span class="remark-date" th:text="${#temporals.format(remark.getCreatedAt(), 'MMM dd, yyyy HH:mm')}">Jan 01, 2026</span>
+                </div>
+                <div class="remark-content" th:text="${remark.getContent()}">
+                    This is a teacher remark about your progress.
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${remarks == null or remarks.size() == 0}" class="no-remarks">
+            <p>No remarks from your teachers yet. Keep working hard!</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
