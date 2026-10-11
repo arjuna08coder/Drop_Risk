@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - EduGuard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 20px; font-family: system-ui, sans-serif; background: linear-gradient(135deg,#667eea,#764ba2); }
+        .card { width: min(100%,420px); background: white; padding: 38px; border-radius: 16px; box-shadow: 0 20px 60px #1f293744; }
+        h1 { margin: 0; text-align: center; color: #667eea; font-size: 32px; }
+        .intro { text-align: center; color: #6b7280; margin: 8px 0 28px; }
+        label { display: block; margin: 16px 0 7px; color: #374151; font-size: 14px; font-weight: 600; }
+        input { width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 8px; font: inherit; }
+        input:focus { outline: 2px solid #667eea55; border-color: #667eea; }
+        button { width: 100%; margin-top: 24px; padding: 13px; border: 0; border-radius: 8px; background: #667eea; color: white; font-size: 16px; font-weight: 650; cursor: pointer; }
+        .notice { padding: 11px 13px; margin: 14px 0; border-radius: 8px; color: #991b1b; background: #fee2e2; font-size: 14px; }
+        .success { color: #166534; background: #dcfce7; }
+        .foot { text-align: center; margin: 22px 0 0; color: #6b7280; font-size: 14px; }
+        a { color: #586bd4; font-weight: 650; text-decoration: none; }
+    </style>
+</head>
+<body>
+<main class="card">
+    <h1>EduGuard</h1>
+    <p class="intro">Sign in to your student risk dashboard</p>
+    <div class="notice" th:if="${param.error}">Username or password is incorrect. Please try again.</div>
+    <div class="notice success" th:if="${param.signup}">Account created. Sign in with your new credentials.</div>
+    <div class="notice success" th:if="${param.logout}">You have signed out.</div>
+    <form action="/api/auth/login" method="post">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" required autocomplete="username" autofocus>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+        <button type="submit">Sign In</button>
+    </form>
+    <p class="foot">Don't have an account? <a href="/signup">Create one</a></p>
+</main>
+</body>
+</html>
