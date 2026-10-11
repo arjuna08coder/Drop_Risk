@@ -41,7 +41,7 @@ public class GeminiTextService {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("systemInstruction", Map.of("parts", List.of(Map.of("text", systemInstruction))));
         body.put("contents", contents);
-        body.put("generationConfig", Map.of("temperature", 0.2, "maxOutputTokens", 128));
+        body.put("generationConfig", Map.of("temperature", 0.7, "topP", 0.9, "maxOutputTokens", 256));
 
         JsonNode response = restClient.post()
                 .uri("/models/{model}:generateContent", model)

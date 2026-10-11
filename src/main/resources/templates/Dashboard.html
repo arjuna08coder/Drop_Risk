@@ -643,10 +643,10 @@
     <div class="chat-head"><strong>EduGuard AI Assistant</strong><button class="chat-close" id="chatClose" type="button" aria-label="Close chat">&times;</button></div>
     <div class="chat-context">
         <label for="chatStudent">Student context (optional)</label>
-        <select id="chatStudent"><option value="">General guidance</option><option th:each="student : ${students}" th:value="${student.studentId}" th:text="${student.studentId + ' â€” ' + student.className}">S-101</option></select>
+        <select id="chatStudent"><option value="">General guidance</option><option th:each="student : ${students}" th:value="${student.studentId}" th:text="${student.studentId + ' - ' + student.className}">S-101</option></select>
     </div>
     <div class="chat-messages" id="chatMessages" aria-live="polite"><div class="chat-bubble bot">Hi! Ask me about student support, risk factors, or intervention ideas.</div></div>
-    <form class="chat-form" id="chatForm"><textarea id="chatInput" rows="1" maxlength="2000" placeholder="Write your questionâ€¦" aria-label="Your message" required></textarea><button id="chatSend" type="submit">Send</button></form>
+    <form class="chat-form" id="chatForm"><textarea id="chatInput" rows="1" maxlength="2000" placeholder="Write your question..." aria-label="Your message" required></textarea><button id="chatSend" type="submit">Send</button></form>
 </section>
 <script>
 (() => {
@@ -665,9 +665,9 @@
         event.preventDefault();
         const message = input.value.trim();
         if (!message) return;
-        addMessage(message, 'user'); input.value = ''; send.disabled = true; send.textContent = 'â€¦';
+        addMessage(message, 'user'); input.value = ''; send.disabled = true; send.textContent = '...';
         const history = conversation.slice(-8);
-        const pending = addMessage('Thinkingâ€¦', 'bot');
+        const pending = addMessage('Thinking...', 'bot');
         try {
             const response = await fetch('/api/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, studentId: document.getElementById('chatStudent').value || null, history }) });
             const data = await response.json();

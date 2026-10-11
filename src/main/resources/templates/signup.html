@@ -143,7 +143,7 @@
 
         <div id="error" class="error-message"></div>
 
-        <form id="signupForm">
+        <form id="signupForm" novalidate>
             <div class="form-group">
                 <label for="fullName">Full Name</label>
                 <input type="text" id="fullName" name="fullName" required>
@@ -156,7 +156,7 @@
 
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required autocomplete="email">
+                <input type="email" id="email" name="email" required autocomplete="email" placeholder="name@gmail.com" title="Enter a valid Gmail address">
             </div>
 
             <div class="form-group">
@@ -179,11 +179,24 @@
 
         document.getElementById('signupForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            const gmailPattern = /^([A-Z0-9](?:[A-Z0-9.]{4,28}[A-Z0-9]))(?:\+[A-Z0-9][A-Z0-9.-]{0,31})?@gmail\.com$/i;
+            const gmailMatch = email.match(gmailPattern);
+            if (!gmailMatch || gmailMatch[1].includes('..')) {
+                errorMsg.textContent = 'Enter a valid Gmail address, such as name@gmail.com.';
+                errorMsg.classList.add('show');
+                emailInput.focus();
+                return;
+            }
+            const signupForm = document.getElementById('signupForm');
+            if (!signupForm.checkValidity()) { signupForm.reportValidity(); return; }
+            errorMsg.classList.remove('show');
             
             const formData = {
                 fullName: document.getElementById('fullName').value,
                 username: document.getElementById('username').value,
-                email: document.getElementById('email').value,
+                email: email,
                 password: document.getElementById('password').value
             };
 

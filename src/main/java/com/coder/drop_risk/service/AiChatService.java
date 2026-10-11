@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 public class AiChatService {
     private static final Logger log = LoggerFactory.getLogger(AiChatService.class);
-    private static final String SYSTEM_PROMPT = "You are a helpful student-support assistant. Answer general learning and student-psychology questions from general knowledge; do not ask for student records unless needed. Use supplied records only for student-specific claims. Write in everyday English, avoid jargon, and stay under 35 words, usually one or two short sentences. Use earlier conversation for follow-ups such as Ã¢â‚¬Å“generally.Ã¢â‚¬Â Do not add advice unless asked. Never invent names, scores, or facts.";
+    private static final String SYSTEM_PROMPT = "You are EduGuard, a student-support assistant. Answer general questions directly. When student data is supplied, use its current values and tailor your response to the question. Use recent turns for follow-ups and do not repeat earlier wording. For student support, offer no more than two practical steps. Separate recorded facts from suggestions; never infer causes, holds, diagnoses, or consequences absent from the data. Use plain everyday English, no Markdown, headings, or asterisks. Keep replies to 1-3 short sentences, under 60 words unless asked for more. Never invent student facts, scores, or names.";
     private final GeminiTextService gemini;
     private final StudentRepository studentRepository;
 
@@ -26,12 +26,6 @@ public class AiChatService {
     public String chat(String userMessage, String studentId, List<ChatRequest.ChatTurn> history) {
         Student student = studentId == null || studentId.isBlank()
                 ? null : studentRepository.findById(studentId).orElse(null);
-        if (isGeneralPsychologyFollowUp(userMessage, history)) {
-            return "In general, students do better when they feel supported, know what is expected, and can ask for help. Stress or feeling left out can make learning harder.";
-        }
-        if (asksForGeneralStudentPsychology(userMessage)) {
-            return "Student psychology looks at how students think, feel, learn, and behave. Motivation, confidence, stress, and support from others can shape how they do at school.";
-        }
         if (asksForHighestRisk(userMessage)) return highestRisk();
         if (student == null && asksForHighRiskRoster(userMessage)) return highRiskRoster();
 
@@ -60,18 +54,6 @@ public class AiChatService {
             log.warn("Gemini chat unavailable; returning local guidance: {}", exception.toString());
             return offlineGuidance(student);
         }
-    }
-
-    private boolean asksForGeneralStudentPsychology(String message) {
-        String text = message == null ? "" : message.toLowerCase();
-        return text.contains("psycholog") && (text.contains("student") || text.contains("learner"));
-    }
-
-    private boolean isGeneralPsychologyFollowUp(String message, List<ChatRequest.ChatTurn> history) {
-        if (message == null || !message.trim().equalsIgnoreCase("generally") || history == null) return false;
-        return history.stream().filter(turn -> turn != null && "user".equals(turn.getRole()) && turn.getContent() != null)
-                .map(turn -> turn.getContent().toLowerCase())
-                .anyMatch(content -> content.contains("psycholog") && (content.contains("student") || content.contains("learner")));
     }
 
     private boolean asksForHighestRisk(String message) {
@@ -131,9 +113,10 @@ public class AiChatService {
     }
 
     private String offlineGuidance(Student student) {
-        if (student == null) return "I can explain general student psychology: motivation, confidence, belonging, and stress all affect learning. Students usually do better with clear goals, supportive feedback, and a safe place to ask for help.";
-        return "I canÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t reach Gemini right now. Check the saved attendance, marks, and engagement data for this student, then agree on one practical support step and a follow-up date.";
+        if (student == null) return "The AI assistant is temporarily unavailable. Please try again shortly.";
+        String name = student.getName() == null || student.getName().isBlank() ? student.getStudentId() : student.getName();
+        return String.format("The AI assistant is unavailable. Saved data shows %s has %.1f%% attendance and average marks of %.1f. Review these trends with the student and agree on one useful support step.",
+                name, student.getAttendancePercentage(), student.getAvgMarks());
     }
-
     private record StudentScore(Student student, int score) {}
 }
